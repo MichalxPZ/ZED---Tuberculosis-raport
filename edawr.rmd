@@ -1,0 +1,119 @@
+---
+title: "Raport o zachorowaniach na gruźlicę"
+author: "Michał Zieliński"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+---
+
+## Ustawienia
+
+Wykorzystane biblioteki:
+
+- knitr,
+- dplyr,
+- EDAWR,
+- ggplot2
+```{r setup, include=FALSE}
+if (!requireNamespace("devtools", quietly = TRUE)) {
+  install.packages("devtools")
+}
+devtools::install_github("rstudio/EDAWR")
+library(EDAWR)
+library(dplyr)
+library(ggplot2)
+knitr::opts_chunk$set(echo=F, warning=F, message=F)
+
+```
+## Wczytanie danych z cache'owaniem
+Wyświetlenie typów danych, podsumowania tabeli oraz kilku pierwszych wierszy zbioru.
+```{r load-data, cache = TRUE}
+tb_data <- tb
+str(tb_data)
+summary(tb_data)
+head(tb_data)
+```
+Zbiór danych zawiera 3800 rekordów, które przedstawiają informacje o liczbie zachorowań na gruźlicę w różnych krajach w latach 1995-2013.
+Atrybuty zbioru danych to:
+kraj('country'), rok('year'), płeć('sex') oraz 3 atrybuty z przydziałem do grupy wiekowej: dzieci, dorośli i osoby starsze('child', 'adult', 'elderly').
+
+## Podsumowanie liczby zachorowań z podziałem na płeć
+Dokonujemy podsumowania ze względu na liczbę wystąpień choroby u każdej z płci.
+Sumujemy dzieci, dorosłych i osoby starsze w każdej grupie.
+Generujemy wykres kolumnowy dla każdej z płci.
+```{r gender-summary}
+gender_summary <- tb_data %>%
+  group_by(sex) %>%
+  summarise(
+    total = sum(child, na.rm = TRUE) + sum(adult, na.rm = TRUE) +  sum(elderly, na.rm = TRUE)
+  )
+
+print(gender_summary)
+
+ggplot(gender_summary, aes(x = sex, y = total, fill = sex)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Łączna liczba zachorowań na gruźlicę według płci",
+       x = "Płeć",
+       y = "Łączna liczba zachorowań") +
+  theme_minimal()
+```
+
+## Podsumowanie sumarycznej liczby zachorowań wśród dzieci, dorosłych i osób starszych w kolejnych latach
+Grupujemy dane po latach i tworzymy podsumowania osobno dla dzieci, dorosłych oraz osób starszych.
+Generujemy wykres liniowy zachorowań dla każdej grupy wiekowej w kolejnych latach.
+```{r age-group-summary}
+age_group_summary <- tb_data %>%
+  group_by(year) %>%
+  summarise(
+    total_child = sum(child, na.rm = TRUE),
+    total_adult = sum(adult, na.rm = TRUE),
+    total_elderly = sum(elderly, na.rm = TRUE)
+  )
+
+ggplot(age_group_summary, aes(x = year)) +
+  geom_line(aes(y = total_child, color = "Dzieci")) +
+  geom_line(aes(y = total_adult, color = "Dorośli")) +
+  geom_line(aes(y = total_elderly, color = "Osoby starsze")) +
+  labs(title = "Sumaryczna liczba zachorowań na gruźlicę wśród dzieci, dorosłych i osób starszych",
+       x = "Rok",
+       y = "Liczba zachorowań") +
+  theme_minimal()
+```
+
+##  Podsumowanie sumarycznej liczby zachorowań wśród dzieci, dorosłych i osób starszych w kolejnych latach z podziałem na kraje
+Grupujemy dane po krajach oraz latach i tworzymy podsumowania osobno dla dzieci, dorosłych oraz osób starszych.
+```{r}
+
+```
+```{r}
+
+```
+Generujemy wykresy liniowe zachorowań dla każdej grupy wiekowej w kolejnych latach z podziałem na kraje.
+```{r country-plots}
+country_summary <- tb_data %>%
+  group_by(country, year) %>%
+  summarise(
+    total_child = sum(child, na.rm = TRUE),
+    total_adult = sum(adult, na.rm = TRUE),
+    total_elderly = sum(elderly, na.rm = TRUE)
+  )
+
+country_list <- unique(tb_data$country)
+
+for (country in country_list) {
+  country_data <- filter(country_summary, country == !!country)
+
+  p <- ggplot(country_data, aes(x = year)) +
+    geom_line(aes(y = total_child, color = "Dzieci")) +
+    geom_line(aes(y = total_adult, color = "Dorośli")) +
+    geom_line(aes(y = total_elderly, color = "Osoby starsze")) +
+    labs(title = paste("Liczba zachorowań na gruźlicę w", country),
+         x = "Rok",
+         y = "Liczba zachorowań") +
+    theme_minimal()
+
+  print(p)
+}
+```
