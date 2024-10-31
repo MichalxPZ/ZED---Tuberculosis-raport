@@ -84,12 +84,6 @@ ggplot(age_group_summary, aes(x = year)) +
 
 ##  Podsumowanie sumarycznej liczby zachorowań wśród dzieci, dorosłych i osób starszych w kolejnych latach z podziałem na kraje
 Grupujemy dane po krajach oraz latach i tworzymy podsumowania osobno dla dzieci, dorosłych oraz osób starszych.
-```{r}
-
-```
-```{r}
-
-```
 Generujemy wykresy liniowe zachorowań dla każdej grupy wiekowej w kolejnych latach z podziałem na kraje.
 ```{r country-plots}
 country_summary <- tb_data %>%
